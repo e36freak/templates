@@ -1,0 +1,36 @@
+Various templates and example code
+
+Files:
+  matrix
+    Shows example usage of a two-dimensional associative array in bash
+
+  options
+    Template for the way I personally parse options in bash, allows both long
+    and short options
+
+  parallel
+    Example of a function that runs jobs in parallel
+
+  re_replace
+    Examples of regex searching and regex search/replace in strings using bash
+
+  threads
+    More complex parallel template. Runs N jobs at a time, launching a new one
+    as each job finishes
+
+  transpose
+    Awk script, transposes a matrix/grid. For example,
+      a b c
+      e f g
+      h i
+    will become:
+      a e h
+      b f i
+      c g
+    Reads the whole file into memory in order to do so. Change the "FS = OFS ="
+    line to alter the field separators. An empty value (at least in gawk) will
+    transpose char by char.
+
+  transpose_tmp
+    Same as transpose, except uses a temp file instead of reading everything
+    into memory.
