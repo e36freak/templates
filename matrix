@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# so what this script is going to do, is take a space-separated file of the format:
+# identifier value
+# identifier value
+
+# it will then store each 'value' in the array according to its identifier
+# so the lines: 'foo bar' 'foo baz' 'other thing' will be stored as
+# values[foo,1]=bar; values[foo,2]=baz; values[other,1]=thing
+# the second array 'counts' will keep track of how many values exist for each
+# identifier. so counts[foo]=2; counts[other]=1.
+
+# yes, it's 1-indexed. this is preference, but i find it easier to keep track of
+
+###############################################################################
+
+# set vars
+file=/path/to/whatever
+
+# requires bash >= 4.0. this declares the array as associative
+declare -A values counts
+
+# read the file line by line, splitting into fields based on space. see faq 1
+while read -r iden val; do
+  # increment 'counts' for the identifier
+  ((counts[$iden]++))
+  # store the value in the array
+  values[$iden,${counts[$iden]}]=$val
+done
+
+
+# iterate over each identifier, dump the values. format will be:
+# iden1: val1 val2
+# iden2: val1 val2 val3
+
+# loop over each identifier
+for iden in "${!counts[@]}"; do
+  # print identifier
+  printf '%s: ' "$iden"
+
+  # loop over 1 through counts[iden]
+  for ((i=1; i<=${counts[$iden]}; i++)); do
+    # print each value
+    printf '%s ' "${values[$iden,$i]}"
+  done
+
+  # print newline
+  echo
+done

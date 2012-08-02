@@ -1,0 +1,54 @@
+#!/bin/awk -f
+
+# this one reads the file once for each column, using a temp file
+
+BEGIN {
+  FS = OFS = "|";
+  max = 0;
+
+  # create temp file
+  "mktemp" | getline tmp;
+  close("mktemp");
+}
+
+# keep track of the maximum number of fields seen
+NF > max {
+  max = NF;
+}
+
+# on first read, deal with the first column and write to the temp file
+{
+  if (NR == 1) {
+    printf("%s", $1);
+  } else {
+    printf("%s%s", OFS, $1);
+  }
+
+  print > tmp;
+}
+
+# at this point, we read the temp file again for columns 2 through max
+END {
+  # print ORS for the end of the first line
+  print "";
+
+  # store the number of lines read
+  last = NR;
+
+  # close writing to the temp file
+  close(tmp);
+
+  # loop over columns 2 through max
+  for (c=2; c<=max; c++) {
+    # n stores the line number for each read
+    n = 0;
+
+    # read the temp file for each col
+    while ((getline < tmp) > 0) {
+      printf("%s%s", $c, ++n == last ? ORS : OFS);
+    }
+
+    # close the file, to start reading again next time
+    close(tmp);
+  }
+}

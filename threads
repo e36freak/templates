@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# number of threads
+threads=10
+
+# list of targets
+targets=(foo bar baz)
+
+# the function thaht's being threaded. "$1" is the current target
+threadfn() {
+  sleep "$((RANDOM % 10))"
+
+  # print newline to the fifo at the end, so we know it finished
+  echo >&3
+}
+
+trap 'trap -- INT; echo "waiting for jobs to complete..."; wait; exit' INT
+
+if ! { fifo=$(mktemp -u) && mkfifo"$fifo"; }; then
+  printf "error creating fifo \`%s'\n" "$fifo" >&2
+  exit 1
+fi
+
+# tie fd to fifo, find total number of targets
+exec 3<>"$fifo"
+tot=${#targets[@]}
+
+# launch initial threads
+for ((cur=0; cur<threads; cur++)); do
+  ((cur < tot)) && threadfn "${targets[cur]}" &
+done
+
+# stores number of finished threads
+fin=0
+
+# each time a line is written to the fifo, a thread finished
+while read -r <&3; do
+  # if there are more to launch, launch one
+  if ((cur < tot)); then
+    threadfn "${targets[cur]}" &
+  fi
+
+  # increment current and number of finished. if the number finished equals
+  # the total, break the loop
+  ((cur++, ++fin == tot)) && break
+done
+
+# close the fd/fifo
+exec 3>&-

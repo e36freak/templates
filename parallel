@@ -1,0 +1,38 @@
+#!/bin/bash
+
+parallel() {
+  local workers=$1 handler=$2 w i
+  shift 2
+  local elements=("$@")
+
+  # loop once for each worker to launch
+  for ((w=0; w<workers; w++)); do
+    # fork worker with 1/5 of the total elements to handle
+    for ((i=w; i<${#elements[@]}; i+=workers)); do
+      # as each element for the worker completes, launch the next
+      "$handler" "${elements[i]}"
+    done &
+  done
+
+  # wait for all workers to finish
+  wait
+}
+
+: <<'EOC'
+say you have parallel 5 md5 *.txt, and 20 *.txt files
+it will launch 5 loops SIMULTANEOUSLY. the first will handle files:
+1, 6, 11, 16
+second:
+2, 7, 12, 17
+third:
+3, 8, 13, 18
+fourth:
+4, 9, 14, 19
+fifth:
+5, 10, 15, 20
+
+each worker handles those IN ORDER. if file 1 finishes first, worker1 will
+immediately start file 6. if file 4 finishes second, worker4 will then
+immediately start file 9. each whole worker is launched in the background.
+after all workers are launched, they are all waited on.
+EOC

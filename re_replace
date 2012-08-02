@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# usage: regex_repl REGEX REPLACEMENT STRING
+# replaces ALL matches of REGEX with REPLACEMENT in STRING, and outputs the result
+regex_repl() {
+  local re=$1 rep=$2 in=$3 out=
+
+  while [[ $in =~ $re ]]; do
+    out+=${in%%"${BASH_REMATCH[0]}"*}
+    in=${in#*"${BASH_REMATCH[0]}"}
+  done
+  out+=$in
+
+  printf '%s\n' "$out"
+}
+
+# usage: regex_search REGEX STRING
+# returns ALL matches of REGEX in STRING, NUL-delimited
+regex_search() {
+  local re=$1 in=$2
+
+  while [[ $in =~ $re ]]; do
+    printf '%s\0' "${BASH_REMATCH[0]}"
+
+    in=${in#*"${BASH_REMATCH[0]}"}
+  done
+}
