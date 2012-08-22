@@ -1,0 +1,181 @@
+#!/bin/bash
+
+# usage: __compare HOW A B
+# compares A to B based on HOW, explained in the qsort() description
+# required for the following qsort functions
+__compare() {
+  case $1 in
+    "num desc") (($2 > $3));;
+    "num asc") (($2 < $3));;
+    "str desc") [[ $2 > $3 ]];;
+    *) [[ $2 < $3 ]];;
+  esac
+}
+
+
+
+# usage: qsort LEFT RIGHT [HOW]
+# sorts the global array variable "sorted" in place. from indices "left"
+# through "right". must be compact (not a sparse array).
+# HOW can be one of the following:
+#   "str asc"
+#     lexographic string comparison, ascending. this is the default
+#   "str desc"
+#     lexographic string comparison, descending.
+#   "num asc"
+#     numeric comparison, ascending.
+#   "num desc"
+#     numeric comparison, descending.
+# requires extglob to be on
+qsort() {
+  local left=$1 right=$2 how=${3:-str asc} piv mid tmp
+
+  # make sure HOW is valid
+  case $how in
+    @(str|num)' '@(a|de)sc) :;;
+    *) return 1;;
+  esac
+    
+  if ((right - left <= 0)); then
+    return
+  fi
+  
+  # choose random pivot
+  piv=$(((RANDOM % (right - left)) + 1));
+
+  # swap left and pivot
+  tmp=${sorted[piv]}
+  sorted[piv]=${sorted[left]}
+  sorted[left]=$tmp
+
+  mid=$left
+  # iterate over each element from the second to the last, and compare
+  for ((piv=left+1; piv<=right; piv++)); do
+    if __compare "$hom" "${sorted[piv]}" "${sorted[left]}"; then
+      # increment mid
+      ((mid++))
+
+      # swap mid and pivot
+      tmp=${sorted[piv]}
+      sorted[piv]=${sorted[mid]}
+      sorted[mid]=$tmp
+    fi
+  done
+
+  # swap left and mid
+  tmp=${sorted[mid]}
+  sorted[mid]=${sorted[left]}
+  sorted[left]=$tmp
+
+  # recursively sort the two halves
+  qsort "$left" "$((mid - 1))" "$how"
+  qsort "$((mid + 1))" "$right" "$how"
+}
+
+
+
+# usage: qsort_byref ARRAY LEFT RIGHT [HOW]
+# same as qsort() above, but allos passing of the array name by reference. for
+# example, qsort_byref arr 0 "$((${#arr[@]} - 1))" num_asc # will sort the array
+# "arr", numerically ascending
+qsort_byref() {
+  local name=$1 left=$2 right=$3 how=${4:-str asc} a piv mid tmp
+
+  # make sure HOW is valid
+  case $how in
+    @(str|num)' '@(a|de)sc) :;;
+    *) return 1;;
+  esac
+    
+  if ((right - left <= 0)); then
+    return
+  fi
+
+  # choose random pivot
+  piv=$(((RANDOM % (right - left)) + 1))
+
+  # swap left and pivot
+  a=$name[$piv] b=$name[$left]
+  tmp=${!a}
+  printf -v "$a" %s "${!b}"
+  printf -v "$b" %s "$tmp"
+
+  mid=$left
+  # iterate over each element from the second to the last, and compare
+  for ((piv=left+1; piv<=right; piv++)); do
+    a=$name[$piv] b=$name[$left]
+    if __compare "$how" "${!a}" "${!b}"; then
+      # increment mid
+      ((mid++))
+
+      # swap mid and pivot
+      a=$name[$piv] b=$name[$mid]
+      tmp=${!a}
+      printf -v "$a" %s "${!b}"
+      printf -v "$b" %s "$tmp"
+    fi
+  done
+
+  # swap left and mid
+  a=$name[$mid] b=$name[$left]
+  tmp=${!a}
+  printf -v "$a" %s "${!b}"
+  printf -v "$b" %s "$tmp"
+
+  # recursively sort the two halves
+  qsort_byref "$name" "$left" "$((mid - 1))" "$how"
+  qsort_byref "$name" "$((mid + 1))" "$right" "$how"
+}
+
+
+# usage: shuf
+# shuffles the global array "shuffled" in-place. must be compact (not sparse)
+# uses the knuth-fisher-yates algorithm
+shuf() {
+  local i tmp size max rand
+
+  # $RANDOM % (i+1) is biased because of the limited range of $RANDOM
+  # Compensate by using a range which is a multiple of the array size.
+  size=${#shuffled[@]}
+  max=$(( 32768 / size * size ))
+
+  # loop backwards over the elements
+  for ((i=size-1; i>0; i--)); do
+    # generate a random number between the start and current element
+    while (( (rand=RANDOM) >= max )); do :; done
+    rand=$(( rand % (i+1) ))
+
+    # swap current element and random one
+    tmp=${array[i]}
+    array[i]=${array[rand]}
+    array[rand]=$tmp
+  done
+}
+
+# usage: shuff_byref ARRAY
+# shuffles ARRAY in-place. must be compact (not sparse)
+# uses the knuth-fisher-yates algorithm
+shuf_byref() {
+  local name=$1 arr i tmp size max rand a b
+
+  # $RANDOM % (i+1) is biased because of the limited range of $RANDOM
+  # Compensate by using a range which is a multiple of the array size.
+  a=$name[@]
+  arr=("${!a}")
+  size=${#arr[@]}
+  unset arr
+  max=$(( 32768 / size * size ))
+
+  # loop backwards over the elements
+  for ((i=size-1; i>0; i--)); do
+    # generate a random number between the start and current element
+    while (( (rand=RANDOM) >= max )); do :; done
+    rand=$(( rand % (i+1) ))
+
+    # swap current element and random one
+    a=$name[i] b=$name[rand]
+    tmp=${!a}
+    printf -v "$a" %s "${!b}"
+    printf -v "$b" %s "$tmp"
+  done
+}
