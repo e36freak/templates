@@ -1,0 +1,22 @@
+#!/bin/sh
+
+# usage: pe_cut START LEN STRING
+# POSIX function to replicate "${var:START:LEN}" in bash
+pe_cut() {
+  out=$3
+
+  # trim chars up to START
+  i=0
+  while test "$i" -lt "$1"; do
+    out=${out#?}
+
+    i=$((i + 1))
+  done
+
+  # trim chars from LEN to the end
+  while test "${#out}" -gt "$2"; do
+    out=${out%?}
+  done
+
+  printf '%s\n' "$out"
+}

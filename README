@@ -14,6 +14,9 @@ Files:
   re_replace
     Examples of regex searching and regex search/replace in strings using bash
 
+  pe_cut
+    POSIX function to replicate "${var:start:len}" in bash
+
   sort
     Examples of quicksort and shuffle functions using bash
 
