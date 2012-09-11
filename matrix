@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# so what this script is going to do, is take a space-separated file of the format:
+# this script will take a space-separated file of the format:
 # identifier value
 # identifier value
 
-# it will then store each 'value' in the array according to its identifier
+# it will then store each 'value' in the array according to its identifier.
 # so the lines: 'foo bar' 'foo baz' 'other thing' will be stored as
 # values[foo,1]=bar; values[foo,2]=baz; values[other,1]=thing
 # the second array 'counts' will keep track of how many values exist for each
@@ -17,10 +17,10 @@
 # set vars
 file=/path/to/whatever
 
-# requires bash >= 4.0. this declares the array as associative
+# requires bash >= 4.0. this declares the array as associative* (see notes)
 declare -A values counts
 
-# read the file line by line, splitting into fields based on space. see faq 1
+# read the file line by line, splitting into fields based on space**
 while read -r iden val; do
   # increment 'counts' for the identifier
   ((counts[$iden]++))
@@ -36,14 +36,19 @@ done
 # loop over each identifier
 for iden in "${!counts[@]}"; do
   # print identifier
-  printf '%s: ' "$iden"
+  printf '%s:' "$iden"
 
   # loop over 1 through counts[iden]
   for ((i=1; i<=${counts[$iden]}; i++)); do
     # print each value
-    printf '%s ' "${values[$iden,$i]}"
+    printf ' %s' "${values[$iden,$i]}"
   done
 
   # print newline
   echo
 done
+
+###############################################################################
+# notes:
+# *     http://mywiki.wooledge.org/BashFAQ/006
+# **    http://mywiki.wooledge.org/BashFAQ/001
