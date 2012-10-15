@@ -1,6 +1,9 @@
 Various templates and example code
 
 Files:
+  bashrc
+    Various useful functions for .bashrc. Each one is described in the comments
+
   matrix
     Shows example usage of a two-dimensional associative array in bash
 
@@ -25,7 +28,7 @@ Files:
     as each job finishes
 
   transpose
-    Awk script, transposes a matrix/grid. For example,
+    AWK script, transposes a matrix/grid. For example,
       a b c
       e f g
       h i
