@@ -43,3 +43,14 @@ Files:
   transpose_tmp
     Same as transpose, except uses a temp file instead of reading everything
     into memory.
+
+
+
+Unlike most of my repos, which use the MIT license, all of the code in this
+repo is completely free to use however you want, with or without crediting me.
+Honestly, I really don't care. If you DO feel the need to credit me, though,
+please use the following info:
+  DJ Mills <dm@e36freak.com>
+
+If you ever meet me in real life, though, feel free to buy me a brew. I like
+hops.

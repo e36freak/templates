@@ -82,17 +82,70 @@ read_paste() {
 }
 
 
-# usage: sprunge [FILE]
-# upload FILE to sprunge.us. if FILE is not provided, uses the standard input
+# usage: sprunge [OPTIONS] [FILE ...]
+#
+# Upload FILEs to sprunge.us. If FILE is not provided, or is '-', reads the
+# standard input
+#
+#  Options:
+#   -h, --help   Display this help and exit
 sprunge() {
+  local f err=0
+
+  # check for --help
+  while [[ $1 = -?* ]]; do
+    case $1 in
+      -h|--help)
+        cat <<'EOF'
+usage: sprunge [OPTIONS] [FILE ...]
+
+Upload FILEs to sprunge.us. If FILE is not provided, or is '-', reads the
+standard input
+
+ Options:
+  -h, --help   Display this help and exit
+EOF
+        return 0
+        ;;
+      --) shift; break;;
+      *)
+        printf 'invalid option: %s\n' "$1" >&2
+        return 1
+        ;;
+    esac
+
+    shift
+  done
+
+  # args provided, treat as files
   if (($#)); then
-    if [[ -f $1 && -r $1 ]]; then
-      curl -F 'sprunge=<-' http://sprunge.us < "$1"
-    else
-      printf 'file %s does not exist or is not readable\n' "$1" >&2
-      return 1
-    fi
+    # iterate over each FILE
+    for f; do
+      # if FILE is '-', use the standard input
+      if [[ $f = - || $f = /dev/stdin ]]; then
+        if (($# > 1)); then
+          printf 'stdin: '
+        fi
+        curl -F 'sprunge=<-' http://sprunge.us || err=1
+
+      # make sure it's a file or fifo and is readable
+      elif [[ ( -f $f || -p $f ) && -r $f ]]; then
+        if (($# > 1)); then
+          printf '%s: ' "$f"
+        fi
+        curl -F 'sprunge=<-' http://sprunge.us <"$f" || err=1
+
+      # unreadable or nonexistent file
+      else
+        printf '%s: premission denied\n' "$f" >&2
+        err=1
+      fi
+    done
+
+  # no args, read from stdin
   else
-    curl -F 'sprunge=<-' http://sprunge.us
+    curl -F 'sprunge=<-' http://sprunge.us || err=1
   fi
+
+  return "$err"
 }
