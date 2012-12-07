@@ -1,10 +1,18 @@
 #!/bin/bash
 
-# this is how i manually parse options for complex shell scripts. the original
+# This is how I manually parse options for complex shell scripts. The first
 # loop, even though it uses 'optstring', will NOT check if an option that takes
-# a required argument has said argument provided. that must be done within the
+# a required argument has said argument provided. That must be done within the
 # second loop and case statement, yourself. Its purpose is solely to determine
 # that -oARG is split into -o ARG, and not -o -A -R -G.
+
+# Some scripts that use this method, for examples of usage:
+#  https://github.com/e36freak/tools/blob/master/newscript
+#  https://github.com/e36freak/clearcache/blob/master/clearcache
+#
+#  A modified version that allows optional arguments (by not altering --long=arg
+#  in the inital loop):
+#    https://github.com/e36freak/meat/blob/master/meat
 
 ################################################################################
 
