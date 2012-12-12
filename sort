@@ -41,7 +41,7 @@ qsort() {
   fi
   
   # choose random pivot
-  piv=$(((RANDOM % (right - left)) + 1));
+  piv=$(((RANDOM % (right - left)) + left));
 
   # swap left and pivot
   tmp=${sorted[piv]}
@@ -92,7 +92,7 @@ qsort_byref() {
   fi
 
   # choose random pivot
-  piv=$(((RANDOM % (right - left)) + 1))
+  piv=$(((RANDOM % (right - left)) + left))
 
   # swap left and pivot
   a=$name[$piv] b=$name[$left]
