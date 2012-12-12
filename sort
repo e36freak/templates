@@ -79,7 +79,7 @@ qsort() {
 # example, qsort_byref arr 0 "$((${#arr[@]} - 1))" num_asc # will sort the array
 # "arr", numerically ascending
 qsort_byref() {
-  local name=$1 left=$2 right=$3 how=${4:-str asc} a piv mid tmp
+  local name=$1 left=$2 right=$3 how=${4:-str asc} a b piv mid tmp
 
   # make sure HOW is valid
   case $how in
