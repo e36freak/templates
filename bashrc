@@ -88,13 +88,44 @@ read_paste() {
 # standard input
 #
 #  Options:
-#   -h, --help   Display this help and exit
+#   -n, --nonames   Do not ever print the filenames in the output
+#   -h, --help      Display this help and exit
 sprunge() {
-  local f err=0
+  local f err=0 optstring=nh options=() c names=1
 
-  # check for --help
+  # break the options up into a more easily parsable format
+  while (($#)); do
+    case $1 in
+      -[!-]?*)
+        for ((i=1; i<${#1}; i++)); do
+          c=${1:i:1} options+=("-$c")
+
+          if [[ $optstring = *"$c:"* && ${1:i+1} ]]; then
+            options+=("${1:i+1}")
+            break
+          fi
+        done
+        ;;
+      --?*=*) options+=("${1%%=*}" "${1#*=}");;
+      # end of options, stop breaking them up
+      --)
+        options+=(--endopts)
+        shift
+        options+=("$@")
+        break
+        ;;
+      *) options+=("$1");;
+    esac
+
+    shift
+  done
+  # set new positional parameters to altered options
+  set -- "${options[@]}"
+
+  # read in options
   while [[ $1 = -?* ]]; do
     case $1 in
+      -n|--nonames) names=0;;
       -h|--help)
         cat <<'EOF'
 usage: sprunge [OPTIONS] [FILE ...]
@@ -103,7 +134,8 @@ Upload FILEs to sprunge.us. If FILE is not provided, or is '-', reads the
 standard input
 
  Options:
-  -h, --help   Display this help and exit
+  -n, --nonames   Do not ever print the filenames in the output
+  -h, --help      Display this help and exit
 EOF
         return 0
         ;;
@@ -121,19 +153,19 @@ EOF
   if (($#)); then
     # iterate over each FILE
     for f; do
-      # if FILE is '-', use the standard input
+      # stdin
       if [[ $f = - || $f = /dev/stdin ]]; then
-        if (($# > 1)); then
+        if (($# > 1 && names)); then
           printf 'stdin: '
         fi
         curl -F 'sprunge=<-' http://sprunge.us || err=1
 
       # make sure it's a file or fifo and is readable
       elif [[ ( -f $f || -p $f ) && -r $f ]]; then
-        if (($# > 1)); then
+        if (($# > 1 && names)); then
           printf '%s: ' "$f"
         fi
-        curl -F 'sprunge=<-' http://sprunge.us <"$f" || err=1
+        curl -F 'sprunge=<-' http://sprunge.us < "$f" || err=1
 
       # unreadable or nonexistent file
       else
