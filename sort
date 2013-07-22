@@ -146,9 +146,9 @@ shuf() {
     rand=$(( rand % (i+1) ))
 
     # swap current element and random one
-    tmp=${array[i]}
-    array[i]=${array[rand]}
-    array[rand]=$tmp
+    tmp=${shuffled[i]}
+    shuffled[i]=${shuffled[rand]}
+    shuffled[rand]=$tmp
   done
 }
 

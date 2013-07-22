@@ -27,6 +27,10 @@ Files:
     More complex parallel template. Runs N jobs at a time, launching a new one
     as each job finishes
 
+  time_funcs
+    Various useful functions for converting human readable times to seconds,
+    and vice versa
+
   transpose
     AWK script, transposes a matrix/grid. For example,
       a b c

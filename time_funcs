@@ -1,0 +1,149 @@
+#!/bin/bash
+
+shopt -s extglob
+
+# usage: hr_to_s TIME
+# Converts TIME of the format [HH:]MM:SS to seconds, printing the result to the
+# standand output. Returns 0 if successful, 1 if not (usually due to an invalid
+# TIME). Requires extended globs to be enabled prior to the function definition
+# (shopt -s extglob)
+hr_to_s() {
+  local tm len t mult secs=0
+
+  # validate TIME
+  if [[ $1 != ?(+([0-9]):)?([0-9])[0-9]:?([0-9])[0-9] ]]; then
+    return 1
+  fi
+
+  # split TIME into an array
+  IFS=: read -ra tm <<<"$1"
+  len=${#tm[@]}
+
+  # loop backwards over each element, adding the value and the appropriate
+  # multiplier to the final value
+  for ((t=len-1, mult=1; t>=0; t--, mult*=60)); do
+    ((secs += tm[t] * mult))
+  done
+
+  printf '%d\n' "$secs"
+}
+
+# usage: s_to_hr SECS
+# Converts SECS seconds to the human readable format HH:MM:SS, printing the new
+# timestamp to the standard output. Returns 0 if successful, 1 if not (because
+# SECS is not a valid integer).
+s_to_hr() {
+  local hrs=$1 mins secs
+
+  # validate SECS
+  if [[ $hrs = *[!0-9]* ]]; then
+    return 1
+  fi
+
+  # get the hours, minutes, and seconds using basic math
+  ((secs = hrs % 60,
+    hrs = hrs / 60,
+    mins = hrs % 60,
+    hrs = hrs / 60))
+
+  # print the converted timestamp
+  printf '%02d:%02d:%02d\n' "$hrs" "$mins" "$secs"
+}
+
+
+# usage: s_to_shr SECS
+# Converts SECS seconds to the human readable format [HH:[MM:]]SS, where HH
+# and MM are only added as needed (if it's only 5 minutes, the result will be
+# 05:00, whereas for 3 hours it would be 03:00:00). Prints the result to the
+# standard output. Returns 0 if successful, 1 if not (because SECS is not a
+# valid integer).
+s_to_shr() {
+  local hrs=$1 mins secs
+
+  # validate SECS
+  if [[ $hrs = *[!0-9]* ]]; then
+    return 1
+  fi
+
+  # get the hours, minutes, and seconds using basic math
+  ((secs = hrs % 60,
+    hrs = hrs / 60,
+    mins = hrs % 60,
+    hrs = hrs / 60))
+
+  # print the converted timestamp
+  if ((hrs)); then
+    printf '%02d:%02d:%02d\n' "$hrs" "$mins" "$secs"
+  elif ((mins)); then
+    printf '%02d:%02d\n' "$mins" "$secs"
+  else
+    printf '%02d\n' "$secs"
+  fi
+}
+
+# usage: s_to_wdhr SECS
+# Converts SECS seconds to the human readable format W weeks, D days, HH:MM:SS,
+# printing the result to the standard output. Returns 0 if successful, 1 if not
+# (because SECS is not a valid integer).
+s_to_wdhr() {
+  local wks=$1 days hrs mins secs
+
+  # validate SECS
+  if [[ $wks = *[!0-9]* ]]; then
+    return 1
+  fi
+
+  # get the weeks, days, hours, minutes and seconds using basic math
+  ((secs = wks % 60,
+    wks = wks / 60,
+    mins = wks % 60,
+    wks = wks / 60,
+    hrs = wks % 24,
+    wks = wks / 24,
+    days = wks % 7,
+    wks = wks / 7))
+
+  # print the converted timestamp
+  printf '%d weeks, %d days, %02d:%02d:%02d\n' \
+         "$wks" "$days" "$hrs" "$mins" "$secs"
+}
+
+# usage: s_to_swdhr SECS
+# Converts SECS seconds to the human readable format
+# [W weeks, [D days, [HH:[MM:]]]]SS, where "W weeks", "D days", HH and MM are
+# only added as needed (if it's only 5 minutes, the result will be 05:00,
+# whereas for 3 hours it would be 03:00:00, and 10 weeks and 3 days would be
+# "10 weeks, 3 days, 00:00:00"). Prints the result to the standard output.
+# Returns 0 if successful, 1 if not (because SECS is not a valid integer).
+s_to_swdhr() {
+  local wks=$1 days hrs mins secs
+
+  # validate SECS
+  if [[ $wks = *[!0-9]* ]]; then
+    return 1
+  fi
+
+  # get the weeks, days, hours, minutes and seconds using basic math
+  ((secs = wks % 60,
+    wks = wks / 60,
+    mins = wks % 60,
+    wks = wks / 60,
+    hrs = wks % 24,
+    wks = wks / 24,
+    days = wks % 7,
+    wks = wks / 7))
+
+  # print the converted timestamp
+  if ((wks)); then
+    printf '%d weeks, %d days, %02d:%02d:%02d\n' \
+           "$wks" "$days" "$hrs" "$mins" "$secs"
+  elif ((days)); then
+    printf '%d days, %02d:%02d:%02d\n' "$days" "$hrs" "$mins" "$secs"
+  elif ((hrs)); then
+    printf '%02d:%02d:%02d\n' "$hrs" "$mins" "$secs"
+  elif ((mins)); then
+    printf '%02d:%02d\n' "$mins" "$secs"
+  else
+    printf '%02d\n' "$secs"
+  fi
+}
